@@ -1,0 +1,12 @@
+# Keep recon artifacts out of git: large third-party bundles + anything that
+# could contain captured keys/tokens. Reproduce them with tooling/recon.sh.
+recon/main.js
+recon/*.js
+recon/app_headers.txt
+recon/*.har
+*.ipa
+secrets.*
+.env
+hermes-run.log
+lookup.json
+site_index.html
