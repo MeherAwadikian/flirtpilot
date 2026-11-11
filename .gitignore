@@ -10,3 +10,10 @@ secrets.*
 hermes-run.log
 lookup.json
 site_index.html
+
+# Extra secret safety (app backend)
+.env.local
+.env*.local
+*.env
+!.env.example
+service_role*
