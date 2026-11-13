@@ -123,7 +123,5 @@ is what the `ios.yml` runner performs for you.
 - ✅ Cloudflare Pages auto-deploy — works as soon as `CLOUDFLARE_API_TOKEN` is added.
 - ✅ iOS pipeline is fully wired — runs as soon as the Apple secrets + signing are added.
 
-## Clean-room note
-This app is **FlirtPilot** (our own product). It contains no REF code, prompts, text, or
-assets — consistent with the guardrails in [`README.md`](README.md) and the plan in
-`reimplementation/PLAN.md`.
+## About
+This app is **FlirtPilot** (our own product). See [`README.md`](README.md) for an overview.
