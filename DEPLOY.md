@@ -36,6 +36,35 @@ npm run preview    # serve the production build locally
 
 ---
 
+## 1a. AI backend (real coaching)  ✅ works, free by default
+
+The app's intelligence runs in a Cloudflare Pages Function at `/api/ai`
+([`app/functions/api/ai.ts`](app/functions/api/ai.ts)) that calls OpenRouter **server-side**
+— the key is never in the client bundle. The frontend falls back to on-device rules when
+offline or if this is unset, so the app always works.
+
+1. Add the key to the Pages project (one time):
+   - Dashboard: Pages → `flirtpilot` → Settings → Environment variables → add
+     **`OPENROUTER_API_KEY`** (Production + Preview), or
+   - CLI: `cd app && npx wrangler pages secret put OPENROUTER_API_KEY --project-name flirtpilot`
+2. (Optional) `OPENROUTER_MODEL` — defaults to **`nvidia/nemotron-3.5-super-vl:free`**
+   (a free model, $0/call). Set a paid model id here if the key has credits.
+
+Verified locally: all four modes (coach, openers, profile, practice) return real,
+context-aware output against the free model at zero cost.
+
+### Test the AI locally
+```bash
+cd app
+echo "OPENROUTER_API_KEY=sk-or-..." > .dev.vars   # gitignored
+npm run build && npx wrangler pages dev dist --port 8788
+curl -X POST http://127.0.0.1:8788/api/ai \
+  -H 'Content-Type: application/json' \
+  -d '{"mode":"coach","conversation":"She said she loves hiking","tones":["playful","warm"]}'
+```
+
+---
+
 ## 2. Native iOS → TestFlight  ⚠️ needs your Apple Developer account
 
 A native iOS build **cannot** be produced by Cloudflare, Windows, or this environment. It
@@ -66,16 +95,25 @@ npx cap open ios     # opens Xcode
 On Windows you can do everything **except** `cap add ios` / Xcode — that step is Mac-only and
 is what the `ios.yml` runner performs for you.
 
+> **iOS + AI:** the native app's WebView loads from a local origin, so a relative `/api/ai`
+> call won't reach your deployed backend. Build the iOS web bundle with the API base pointed
+> at your Pages URL:
+> ```bash
+> VITE_API_BASE=https://flirtpilot.pages.dev npm run build && npx cap sync ios
+> ```
+> The Function already sends permissive CORS headers for this. The PWA needs no such setting
+> (same-origin).
+
 ---
 
 ## What's real vs. pending
 
 - ✅ App builds and runs (web + PWA) — verified with `npm run build`.
+- ✅ **Real AI coaching** via `/api/ai` → OpenRouter — verified end-to-end locally (all four
+  modes) with `wrangler pages dev`. Free model by default; add `OPENROUTER_API_KEY` to turn on.
+- ✅ On-device rule-based engine remains as the **offline fallback** (`app/src/engine.ts`).
 - ✅ Cloudflare Pages auto-deploy — works as soon as `CLOUDFLARE_API_TOKEN` is added.
 - ✅ iOS pipeline is fully wired — runs as soon as the Apple secrets + signing are added.
-- ⚠️ The current app logic is an **on-device, rule-based stand-in** (`app/src/engine.ts`),
-  not a trained model. It's a working, clean-room shell — swap in real inference per
-  [`reimplementation/PLAN.md`](reimplementation/PLAN.md).
 
 ## Clean-room note
 This app is **FlirtPilot** (our own product). It contains no REF code, prompts, text, or

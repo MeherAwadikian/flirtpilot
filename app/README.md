@@ -15,8 +15,12 @@ iOS** (Capacitor → TestFlight). Clean-room; contains no third-party code or as
 - **Profile** — transparent bio score + concrete fixes.
 - **Practice** — a safe simulated match to rehearse against.
 
-All logic lives in [`src/engine.ts`](src/engine.ts) and is a deliberately offline, rule-based
-stand-in for real inference. See `../reimplementation/PLAN.md` for the intended backend.
+## Intelligence
+Real AI runs server-side in a Cloudflare Pages Function ([`functions/api/ai.ts`](functions/api/ai.ts))
+that calls **OpenRouter** — the API key never touches the client. [`src/engine.ts`](src/engine.ts)
+calls `/api/ai` first and transparently falls back to an on-device, clean-room rule engine when
+offline or unconfigured. Default model is free (`nvidia/nemotron-3.5-super-vl:free`). See
+[`../DEPLOY.md`](../DEPLOY.md) for the one env var to set.
 
 ## Develop
 ```bash

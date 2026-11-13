@@ -141,3 +141,9 @@ button { cursor: pointer; font: inherit; }
 .tab.active { color: var(--ink); }
 .tab-icon { font-size: 20px; filter: grayscale(0.4); }
 .tab.active .tab-icon { filter: none; }
+
+.srcline { margin-top: 10px; }
+.srctag { font-size: 11px; padding: 3px 9px; border-radius: 999px; letter-spacing: 0.04em; }
+.srctag.ai { color: var(--brand-2); border: 1px solid rgba(138,92,246,0.4); }
+.srctag.off { color: var(--muted); border: 1px solid var(--line); }
+.bubble.typing { opacity: 0.6; letter-spacing: 2px; }
