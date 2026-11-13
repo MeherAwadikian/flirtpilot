@@ -1,0 +1,6 @@
+app_identifier("live.aiology.flirtpilot") # must match capacitor.config.ts appId
+# apple_id / team_id are provided in CI via App Store Connect API key + env.
+# For local use you can set:
+# apple_id("you@example.com")
+# itc_team_id("...")
+# team_id("...")
