@@ -20,9 +20,14 @@ on:
       - '.github/workflows/ios.yml'
   workflow_dispatch: {}
 
+permissions:
+  contents: read
+
 jobs:
   testflight:
     runs-on: macos-14
+    permissions:
+      contents: read
     defaults:
       run:
         working-directory: app
@@ -49,7 +54,7 @@ jobs:
           npx cap sync ios
 
       - name: Ruby / fastlane
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199 # v1.338.0
         with:
           ruby-version: '3.2'
           bundler-cache: true
