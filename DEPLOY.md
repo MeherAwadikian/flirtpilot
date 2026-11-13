@@ -49,6 +49,13 @@ offline or if this is unset, so the app always works.
    - CLI: `cd app && npx wrangler pages secret put OPENROUTER_API_KEY --project-name flirtpilot`
 2. (Optional) `OPENROUTER_MODEL` — defaults to **`nvidia/nemotron-3.5-super-vl:free`**
    (a free model, $0/call). Set a paid model id here if the key has credits.
+3. (Optional, recommended before public launch) hardening on the `/api/ai` Function:
+   - **`ALLOWED_ORIGINS`** — comma-separated CORS allowlist. If unset, the default allows your
+     `*.pages.dev` + the Capacitor/localhost origins; any other origin is blocked.
+   - **`RATE_LIMIT`** — bind a **KV namespace** named `RATE_LIMIT` to the Pages project to enable
+     per-IP limiting (30 req / 60s). Without it, add a **Cloudflare WAF rate rule** on `/api/ai`.
+   - The Function already caps request bodies at 16 KB, times out the upstream call at 20s, escapes
+     the prompt delimiter in user input, and never echoes upstream errors to the client.
 
 Verified locally: all four modes (coach, openers, profile, practice) return real,
 context-aware output against the free model at zero cost.
@@ -96,13 +103,14 @@ On Windows you can do everything **except** `cap add ios` / Xcode — that step 
 is what the `ios.yml` runner performs for you.
 
 > **iOS + AI:** the native app's WebView loads from a local origin, so a relative `/api/ai`
-> call won't reach your deployed backend. Build the iOS web bundle with the API base pointed
-> at your Pages URL:
+> call won't reach your deployed backend. The `ios.yml` workflow now builds with
+> `VITE_API_BASE` set automatically (repo variable `VITE_API_BASE`, default
+> `https://flirtpilot.pages.dev`). For a local Mac build, pass it yourself:
 > ```bash
 > VITE_API_BASE=https://flirtpilot.pages.dev npm run build && npx cap sync ios
 > ```
-> The Function already sends permissive CORS headers for this. The PWA needs no such setting
-> (same-origin).
+> The Function's CORS allowlist already includes the Capacitor/localhost origins. The PWA needs
+> no such setting (same-origin).
 
 ---
 

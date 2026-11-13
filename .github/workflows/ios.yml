@@ -44,6 +44,11 @@ jobs:
         run: sudo xcode-select -s /Applications/Xcode_15.4.app
 
       - name: Install JS deps + build web
+        # VITE_API_BASE is REQUIRED for the native app: inside the Capacitor WebView the
+        # origin is capacitor://localhost, so a relative /api/ai would never reach the
+        # deployed backend. Point it at the Pages deployment (override via repo variable).
+        env:
+          VITE_API_BASE: ${{ vars.VITE_API_BASE || 'https://flirtpilot.pages.dev' }}
         run: |
           npm ci
           npm run build
