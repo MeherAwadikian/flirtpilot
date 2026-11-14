@@ -1,0 +1,89 @@
+name: iOS TestFlight
+
+# Builds the Capacitor-wrapped iOS app and uploads a TestFlight beta.
+#
+# REQUIRES an Apple Developer Program account and these repo secrets:
+#   ASC_KEY_ID       — App Store Connect API key id
+#   ASC_ISSUER_ID    — App Store Connect issuer id
+#   ASC_KEY_P8       — full contents of the AuthKey_XXXX.p8 file
+#   Signing (pick one): either fastlane match secrets (MATCH_GIT_URL, MATCH_PASSWORD, MATCH_DEPLOY_KEY)
+#   or import a distribution cert/profile step (see commented block).
+#
+# Until those secrets exist the job will fail at the signing/upload step — that is expected.
+# Trigger manually (workflow_dispatch) for the first run.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - '.github/workflows/ios.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  testflight:
+    runs-on: macos-14
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app
+
+      - name: Install JS deps + build web
+        # VITE_API_BASE is REQUIRED for the native app: inside the Capacitor WebView the
+        # origin is capacitor://localhost, so a relative /api/ai would never reach the
+        # deployed backend. Point it at the Pages deployment (override via repo variable).
+        env:
+          VITE_API_BASE: ${{ vars.VITE_API_BASE || 'https://flirtpilot.pages.dev' }}
+        run: |
+          npm ci
+          npm run build
+
+      - name: Generate iOS project (Capacitor)
+        run: |
+          npx cap add ios || true
+          npx cap sync ios
+
+      - name: Ruby / fastlane
+        uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199 # v1.338.0
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: app
+
+      # --- Option (b) manual signing: uncomment and provide secrets ---
+      # - name: Import signing certificate
+      #   uses: apple-actions/import-codesign-certs@v3
+      #   with:
+      #     p12-file-base64: ${{ secrets.DIST_CERT_P12_BASE64 }}
+      #     p12-password: ${{ secrets.DIST_CERT_PASSWORD }}
+      # - name: Install provisioning profile
+      #   uses: apple-actions/download-provisioning-profiles@v3
+      #   with:
+      #     bundle-id: com.flirtpilot.app
+      #     issuer-id: ${{ secrets.ASC_ISSUER_ID }}
+      #     api-key-id: ${{ secrets.ASC_KEY_ID }}
+      #     api-private-key: ${{ secrets.ASC_KEY_P8 }}
+
+      - name: Build & upload to TestFlight
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+        run: bundle exec fastlane beta

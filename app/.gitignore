@@ -1,0 +1,19 @@
+node_modules/
+dist/
+.dev.vars
+.wrangler/
+dev-dist/
+build/
+*.ipa
+*.dSYM.zip
+
+# Capacitor-generated native project (regenerated in CI via `npx cap add ios`)
+ios/
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+fastlane/test_output/
+vendor/bundle/
+.bundle/
